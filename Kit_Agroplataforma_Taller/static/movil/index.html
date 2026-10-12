@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2A5C3F">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icono.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icono-192.png">
+<title>Agroplataforma · Campo</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="barra">
+  <div>
+    <div class="eyebrow" id="hOrg">Agroplataforma · app de campo</div>
+    <div class="titulo" id="hEquipo">Iniciar sesión</div>
+  </div>
+  <div class="estado"><span id="hRed" class="pill">—</span><span id="hPend" class="pill">0 por enviar</span></div>
+</header>
+
+<main id="main">
+  <!-- LOGIN -->
+  <section id="pLogin" class="pantalla">
+    <h1>Entrar</h1>
+    <p class="muted">Usa el usuario y el código de tu tarjeta. La primera vez necesitas internet; después la app funciona sin señal.</p>
+    <label>Usuario<input id="lUsuario" autocomplete="username" autocapitalize="none" placeholder="e01.tecnico"></label>
+    <label>Código<input id="lCodigo" inputmode="numeric" autocomplete="current-password"></label>
+    <div id="mLogin"></div>
+    <button class="pri grande" id="bLogin">Entrar</button>
+  </section>
+
+  <!-- INICIO -->
+  <section id="pInicio" class="pantalla" hidden>
+    <div class="tarjeta mision">
+      <div><div class="eyebrow">Misión de campo</div><div class="reloj" id="tMision">00:00</div><div class="muted chico" id="tMisionTxt">Inicia al salir del salón</div></div>
+      <button class="acc" id="bMision">Iniciar salida</button>
+    </div>
+    <nav class="pasos">
+      <button class="paso" data-ir="pResponsable"><span class="num">1</span><span><b>Responsable y permiso</b><br><small id="sResp">Pendiente</small></span></button>
+      <button class="paso" data-ir="pArea"><span class="num">2</span><span><b id="sAreaTit">Área</b><br><small id="sArea">Pendiente</small></span></button>
+      <button class="paso" data-ir="pFicha"><span class="num">3</span><span><b>Fichas y fotos</b><br><small id="sFicha">0 fichas</small></span></button>
+      <button class="paso" data-ir="pEnviar"><span class="num">4</span><span><b>Enviar a la plataforma</b><br><small id="sEnviar">Nada por enviar</small></span></button>
+    </nav>
+    <div class="fila"><button id="bProblema">Reportar un problema</button><a class="boton" href="/web/" id="aWeb">Abrir la plataforma web</a></div>
+    <button class="link" id="bSalir">Cerrar sesión</button>
+  </section>
+
+  <!-- SOLO LECTURA / CRONOMETRISTA -->
+  <section id="pOtroRol" class="pantalla" hidden>
+    <h1 id="oTitulo">Tu rol</h1>
+    <p id="oTexto" class="muted"></p>
+    <div id="cronometro" hidden>
+      <p class="muted chico">Toca <b>Iniciar</b> cuando el equipo empiece cada tarea y <b>Terminar</b> cuando la complete. Los tiempos se envían a la plataforma.</p>
+      <div id="cTareas"></div>
+    </div>
+    <div class="fila"><button id="bProblema2">Reportar un problema</button><a class="boton" href="/web/">Abrir la plataforma web</a></div>
+    <button class="link" id="bSalir2">Cerrar sesión</button>
+  </section>
+
+  <!-- 1 RESPONSABLE -->
+  <section id="pResponsable" class="pantalla" hidden>
+    <button class="volver" data-ir="pInicio">← Inicio</button>
+    <h1>Responsable y permiso</h1>
+    <p class="muted">Primero el permiso. Explica para qué se usan los datos y marca solo lo que autoriza.</p>
+    <label>Nombre (personaje ficticio)<input id="rNombre" autocomplete="off"></label>
+    <label>Comunidad o lugar<input id="rComunidad" autocomplete="off"></label>
+    <label>Lengua<select id="rLengua"><option>Español</option><option>Náhuatl</option><option>Tének</option><option>Xi'iuy (pame)</option><option>Otra</option></select></label>
+    <div class="tarjeta">
+      <label class="chk"><input type="checkbox" id="rDatos"> Autoriza registrar sus datos</label>
+      <label class="chk"><input type="checkbox" id="rFotos"> Autoriza fotos</label>
+      <label class="chk"><input type="checkbox" id="rPub"> Autoriza publicar en el mapa</label>
+    </div>
+    <div id="mResp"></div>
+    <button class="pri grande" id="bResp">Guardar en el teléfono</button>
+  </section>
+
+  <!-- 2 AREA -->
+  <section id="pArea" class="pantalla" hidden>
+    <button class="volver" data-ir="pInicio">← Inicio</button>
+    <h1 id="aTitulo">Levantar el área</h1>
+    <p class="muted">Párate en cada esquina, deja el teléfono quieto y toca <b>Tomar esquina</b>. Recorre la orilla en orden.</p>
+    <div class="gps tarjeta">
+      <div><div class="eyebrow">GPS</div><div id="gEstado" class="gps-estado">Sin lectura</div></div>
+      <div class="gps-prec"><span id="gPrec">—</span><small>precisión</small></div>
+    </div>
+    <svg id="aCroquis" class="croquis" viewBox="0 0 320 220" role="img" aria-label="Croquis del área"></svg>
+    <div class="metricas"><span>Área <b id="aHa">0.000</b> ha</span><span><b id="aM2">0</b> m²</span><span>Perímetro <b id="aPer">0</b> m</span><span>Esquinas <b id="aN">0</b></span></div>
+    <div id="mArea"></div>
+    <button class="acc grande" id="bEsquina">Tomar esquina</button>
+    <div class="fila"><button id="bDeshacer">Deshacer</button><button id="bBorrarArea">Borrar todo</button></div>
+    <button class="pri grande" id="bArea">Cerrar y guardar</button>
+    <details><summary class="muted">Escribir coordenadas a mano</summary>
+      <div class="fila"><label>Latitud<input id="aLat" inputmode="decimal"></label><label>Longitud<input id="aLon" inputmode="decimal"></label></div>
+      <button id="bManual">Agregar esquina</button>
+    </details>
+  </section>
+
+  <!-- 3 FICHA -->
+  <section id="pFicha" class="pantalla" hidden>
+    <button class="volver" data-ir="pInicio">← Inicio</button>
+    <h1 id="fTitulo">Ficha</h1>
+    <div id="fCampos"></div>
+    <div class="tarjeta">
+      <div class="fila sep"><div><div class="eyebrow">Ubicación</div><div id="fUbic" class="chico">Sin tomar</div></div><button class="acc" id="bUbic">Tomar ubicación</button></div>
+    </div>
+    <div class="tarjeta">
+      <div class="eyebrow">Fotos de evidencia</div>
+      <p class="muted chico">Con regla o un objeto de referencia y la etiqueta del equipo. Fondo claro, sin contraluz.</p>
+      <label>Tipo de foto<select id="fTipo"><option>Ejemplar completo</option><option>Detalle</option><option>Entorno</option></select></label>
+      <label class="boton archivo">Tomar foto<input type="file" id="fFoto" accept="image/*" capture="environment"></label>
+      <div class="miniaturas" id="fMinis"></div>
+    </div>
+    <div id="mFicha"></div>
+    <button class="pri grande" id="bFicha">Guardar ficha</button>
+    <h2>Fichas guardadas</h2>
+    <ul class="lista" id="fLista"></ul>
+  </section>
+
+  <!-- 4 ENVIAR -->
+  <section id="pEnviar" class="pantalla" hidden>
+    <button class="volver" data-ir="pInicio">← Inicio</button>
+    <h1>Enviar a la plataforma</h1>
+    <p class="muted">Todo queda guardado en el teléfono. Cuando tengas WiFi o datos, sincroniza. Si no hay señal, no se pierde nada.</p>
+    <div id="mEnviar"></div>
+    <button class="acc grande" id="bSync">Sincronizar ahora</button>
+    <ul class="lista" id="eLista"></ul>
+  </section>
+
+  <!-- PROBLEMA -->
+  <section id="pProblema" class="pantalla" hidden>
+    <button class="volver" id="bVolverProb">← Volver</button>
+    <h1>Reportar un problema</h1>
+    <p class="muted">Describe qué pasó y en qué pantalla. Esto ayuda a mejorar la plataforma.</p>
+    <label>¿Dónde pasó?<select id="pPantalla"><option>Inicio de sesión</option><option>Responsable y permiso</option><option>Área y GPS</option><option>Ficha</option><option>Fotos</option><option>Sincronización</option><option>Plataforma web</option><option>Otro</option></select></label>
+    <label>¿Qué pasó?<textarea id="pTexto" rows="4"></textarea></label>
+    <div id="mProb"></div>
+    <button class="pri grande" id="bProb">Guardar reporte</button>
+  </section>
+</main>
+<div id="toast" class="toast" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>
