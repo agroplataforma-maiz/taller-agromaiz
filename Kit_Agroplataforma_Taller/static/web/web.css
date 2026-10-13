@@ -819,3 +819,38 @@ td.ok{background:var(--verdepal)}td.medio{background:var(--maizpal)}td.mal{backg
     transition: none;
   }
 }
+
+
+/* Mostrar u ocultar el código de acceso */
+.login-password-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.login-password-wrap input {
+  padding-right: 90px;
+}
+
+.login-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #2A5C3F;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.login-password-toggle:hover {
+  background: #E8F4EC;
+}
+
+.login-password-toggle:focus-visible {
+  outline: 2px solid #C8820A;
+  outline-offset: 1px;
+}

@@ -33,9 +33,16 @@
             <input id="wUsuario" name="usuario" placeholder="Escribe tu usuario" autocomplete="username"
               autocapitalize="none" required>
 
+
             <label for="wCodigo">Código de acceso</label>
-            <input id="wCodigo" name="codigo" type="password" placeholder="Escribe tu código"
-              autocomplete="current-password" required>
+            <div class="login-password-wrap">
+              <input id="wCodigo" name="codigo" type="password" placeholder="Escribe tu código"
+                autocomplete="current-password" required>
+              <button id="bVerCodigo" class="login-password-toggle" type="button" aria-label="Mostrar código de acceso"
+                aria-pressed="false">
+                Mostrar
+              </button>
+            </div>
 
             <button class="pri login-submit" type="submit">
               Entrar al taller

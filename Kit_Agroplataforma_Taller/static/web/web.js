@@ -117,12 +117,32 @@
   });
 
   // ---------- sesión ----------
+
+  // Mostrar u ocultar el código de acceso.
+  $("bVerCodigo").addEventListener("click", () => {
+    const campo = $("wCodigo");
+    const boton = $("bVerCodigo");
+    const mostrar = campo.type === "password";
+
+    campo.type = mostrar ? "text" : "password";
+    boton.textContent = mostrar ? "Ocultar" : "Mostrar";
+    boton.setAttribute(
+      "aria-label",
+      mostrar ? "Ocultar código de acceso" : "Mostrar código de acceso"
+    );
+    boton.setAttribute("aria-pressed", String(mostrar));
+  });
+
   $("fLogin").addEventListener("submit", async (e) => {
     e.preventDefault();
     try {
       const s = await api("/api/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ usuario: $("wUsuario").value.trim().toLowerCase(), codigo: $("wCodigo").value.trim() }) });
       sesion = s; try { localStorage.setItem("agro-web-sesion", JSON.stringify(s)); } catch (er) { /* */ }
       $("wCodigo").value = "";
+      $("wCodigo").type = "password";
+      $("bVerCodigo").textContent = "Mostrar";
+      $("bVerCodigo").setAttribute("aria-label", "Mostrar código de acceso");
+      $("bVerCodigo").setAttribute("aria-pressed", "false");
       setTab("inicio");
       pintarSesion();
       ajustado = false;
