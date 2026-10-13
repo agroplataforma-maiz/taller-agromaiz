@@ -6,16 +6,7 @@ services:
     env_file: .env
     volumes:
       - ./data:/srv/data
+    ports:
+      - "127.0.0.1:8086:8000"
     restart: unless-stopped
-  caddy:                      # HTTPS automático (necesario para GPS y cámara en los teléfonos)
-    image: caddy:2.8
-    ports: ["8085:80", "443:443"]
-    environment:
-      - DOMINIO=${DOMINIO}
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_datos:/data
-    depends_on: [app]
-    restart: unless-stopped
-volumes:
-  caddy_datos:
+# HTTPS automático (necesario para GPS y cámara en los teléfonos)
