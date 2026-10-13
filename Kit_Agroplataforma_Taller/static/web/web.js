@@ -3,30 +3,118 @@
   "use strict";
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  let sesion = null, config = null, datos = null, tab = "mapa", mapa = null, capa = null, ajustado = false;
-  try { sesion = JSON.parse(localStorage.getItem("agro-web-sesion") || "null"); } catch (e) { sesion = null; }
+  let sesion = null, config = null, datos = null, tab = "inicio", mapa = null, capa = null, ajustado = false; try { sesion = JSON.parse(localStorage.getItem("agro-web-sesion") || "null"); } catch (e) { sesion = null; }
 
   let tt; function toast(t) { const el = $("toast"); el.textContent = t; el.hidden = false; clearTimeout(tt); tt = setTimeout(() => (el.hidden = true), 2800); }
+
   async function api(ruta, op = {}) {
-    const h = op.headers || {}; if (sesion) h.Authorization = "Bearer " + sesion.token;
-    const r = await fetch(ruta, { ...op, headers: h }); let c = null; try { c = await r.json(); } catch (e) { /* */ }
-    if (!r.ok) { const e = new Error((c && c.error) || "Error " + r.status); e.status = r.status; throw e; }
+    const h = { ...(op.headers || {}) };
+
+    if (sesion) {
+      h.Authorization = "Bearer " + sesion.token;
+    }
+
+    const r = await fetch(ruta, { ...op, headers: h });
+
+    let c = null;
+    try {
+      c = await r.json();
+    } catch (e) {
+      // La respuesta puede no contener JSON.
+    }
+
+    if (!r.ok) {
+      const mensaje =
+        (c && (c.error || c.detail || c.mensaje)) ||
+        "Error " + r.status;
+
+      const error = new Error(
+        typeof mensaje === "string"
+          ? mensaje
+          : JSON.stringify(mensaje)
+      );
+
+      error.status = r.status;
+      throw error;
+    }
+
     return c;
   }
+
   const fmt = (s) => { if (s == null) return "—"; s = Math.round(s); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
   const eqNombre = (id) => { const e = config.equipos.find((x) => x.id === id); return e ? e.nombre : id; };
   const eqColor = (id) => { const e = config.equipos.find((x) => x.id === id); return e ? e.color : "#888"; };
   const rol = () => (sesion ? sesion.rol : "invitado");
 
-  // ---------- pestañas ----------
+
+  // ---------- navegación ----------
+  const titulosTab = {
+    inicio: "Inicio",
+    mapa: "Mapa",
+    fichas: "Fichas",
+    evidencias: "Evidencias",
+    metricas: "Métricas de uso",
+    exportar: "Exportar información",
+    admin: "Administración"
+  };
+
+  function cerrarMenuMovil() {
+    $("sidebar").classList.remove("abierto");
+    const overlay = document.querySelector(".menu-overlay");
+    if (overlay) overlay.hidden = true;
+    $("bMenu").setAttribute("aria-expanded", "false");
+  }
+
   function setTab(t) {
-    tab = t; document.querySelectorAll(".tabs button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === t)));
-    document.querySelectorAll("[data-panel]").forEach((p) => (p.hidden = p.dataset.panel !== t));
-    if (t === "mapa" && mapa) setTimeout(() => mapa.invalidateSize(), 50);
+    const boton = document.querySelector(`.sidebar-nav [data-tab="${t}"]`);
+
+    // No permitir navegar a secciones que el rol no tiene habilitadas.
+    if (!boton || boton.hidden) t = "inicio";
+
+    tab = t;
+
+    document.querySelectorAll(".sidebar-nav [data-tab]").forEach((b) => {
+      b.setAttribute("aria-selected", String(b.dataset.tab === t));
+    });
+
+    document.querySelectorAll("[data-panel]").forEach((p) => {
+      p.hidden = p.dataset.panel !== t;
+    });
+
+    $("tituloSeccion").textContent = titulosTab[t] || "Agroplataforma";
+
+    cerrarMenuMovil();
+
+    if (t === "mapa" && mapa) {
+      setTimeout(() => mapa.invalidateSize(), 100);
+    }
+
     if (t === "metricas") cargarMetricas();
     if (t === "admin") cargarAdmin();
   }
-  document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => setTab(b.dataset.tab)));
+
+  // La barra lateral y las tarjetas de Inicio comparten navegación.
+  document.querySelectorAll("[data-tab]").forEach((b) => {
+    b.addEventListener("click", () => setTab(b.dataset.tab));
+  });
+
+  // Menú adaptable para móvil.
+  const overlayMenu = document.createElement("div");
+  overlayMenu.className = "menu-overlay";
+  overlayMenu.hidden = true;
+  document.getElementById("appTaller").appendChild(overlayMenu);
+
+  $("bMenu").addEventListener("click", () => {
+    const abierto = $("sidebar").classList.toggle("abierto");
+    overlayMenu.hidden = !abierto;
+    $("bMenu").setAttribute("aria-expanded", String(abierto));
+  });
+
+  overlayMenu.addEventListener("click", cerrarMenuMovil);
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") cerrarMenuMovil();
+  });
 
   // ---------- sesión ----------
   $("fLogin").addEventListener("submit", async (e) => {
@@ -34,18 +122,66 @@
     try {
       const s = await api("/api/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ usuario: $("wUsuario").value.trim().toLowerCase(), codigo: $("wCodigo").value.trim() }) });
       sesion = s; try { localStorage.setItem("agro-web-sesion", JSON.stringify(s)); } catch (er) { /* */ }
-      $("wCodigo").value = ""; pintarSesion(); ajustado = false; await cargar(); toast("Hola, " + s.rol_nombre.toLowerCase());
+      $("wCodigo").value = "";
+      setTab("inicio");
+      pintarSesion();
+      ajustado = false;
+      await cargar();
+      toast("Hola, " + s.rol_nombre.toLowerCase());
     } catch (er) { toast(er.message); }
   });
   $("bSalir").addEventListener("click", () => { sesion = null; try { localStorage.removeItem("agro-web-sesion"); } catch (e) { /* */ } pintarSesion(); ajustado = false; cargar(); });
+
   function pintarSesion() {
-    $("fLogin").hidden = !!sesion; $("quien").hidden = !sesion;
-    if (sesion) $("quienTxt").textContent = `${sesion.usuario} · ${sesion.rol_nombre}${sesion.equipo ? " · " + eqNombre(sesion.equipo) : ""}`;
-    $("tabAdmin").hidden = rol() !== "admin";
-    const puedeExportar = ["admin", "analista", "investigador"].includes(rol());
+    $("pantallaLogin").hidden = !!sesion;
+    $("appTaller").hidden = !sesion;
+
+    $("fLogin").hidden = false;
+    $("quien").hidden = !sesion;
+
+    if (sesion) {
+      $("quienTxt").textContent =
+        `${sesion.usuario} · ${sesion.rol_nombre}` +
+        (sesion.equipo ? " · " + eqNombre(sesion.equipo) : "");
+
+      $("sbNombre").textContent = sesion.usuario;
+      $("sbRol").textContent = sesion.rol_nombre || sesion.rol;
+      $("sbAvatar").textContent =
+        (sesion.usuario || "A").charAt(0).toUpperCase();
+    } else {
+      $("sbNombre").textContent = "Usuario";
+      $("sbRol").textContent = "Sin sesión";
+      $("sbAvatar").textContent = "A";
+    }
+
+    const r = rol();
+
+    $("tabAdmin").hidden = r !== "admin";
+    $("inicioAdmin").hidden = r !== "admin";
+
+    const puedeExportar = ["admin", "analista", "investigador"].includes(r);
+    const puedeVerMetricas =
+      ["admin", "analista", "investigador", "cronometrista"].includes(r);
+
     document.querySelector('[data-tab="exportar"]').hidden = !puedeExportar;
-    document.querySelector('[data-tab="metricas"]').hidden = !["admin", "analista", "investigador", "cronometrista"].includes(rol());
-    if ((tab === "admin" && rol() !== "admin") || (tab === "exportar" && !puedeExportar)) setTab("mapa");
+    document.querySelector('[data-tab="metricas"]').hidden = !puedeVerMetricas;
+
+    // Las tarjetas de Inicio respetan los mismos permisos del menú.
+    document.querySelectorAll(".modulo-card[data-tab]").forEach((card) => {
+      const destino = document.querySelector(
+        `.sidebar-nav [data-tab="${card.dataset.tab}"]`
+      );
+
+      card.hidden = !destino || destino.hidden;
+    });
+
+    // Si la sección actual deja de estar permitida, volver a Inicio.
+    const actual = document.querySelector(`.sidebar-nav [data-tab="${tab}"]`);
+    if (!actual || actual.hidden) {
+      setTab("inicio");
+    } else {
+      setTab(tab);
+    }
   }
 
   // ---------- datos ----------
@@ -117,8 +253,10 @@
 
   function pintarGaleria() {
     if (datos.rol === "invitado") { $("galeria").innerHTML = `<p class="muted">Las fotos solo se ven con usuario.</p>`; return; }
-    $("galeria").innerHTML = datos.evidencias.length ? datos.evidencias.map((f) => { const e = datos.evaluaciones.find((x) => x.uuid === f.evaluacion_uuid); const n = e ? (e.datos.nombre_comun || e.datos.color_grano || "") : "";
-      return `<figure><img loading="lazy" src="/api/foto/${f.uuid}?token=${encodeURIComponent(sesion.token)}" alt="${esc(n)}"><figcaption><b>${esc(n)}</b> · ${esc(f.tipo)}<br>${esc(eqNombre(f.equipo))}</figcaption></figure>`; }).join("") : `<p class="muted">Aún no llegan fotos.</p>`;
+    $("galeria").innerHTML = datos.evidencias.length ? datos.evidencias.map((f) => {
+      const e = datos.evaluaciones.find((x) => x.uuid === f.evaluacion_uuid); const n = e ? (e.datos.nombre_comun || e.datos.color_grano || "") : "";
+      return `<figure><img loading="lazy" src="/api/foto/${f.uuid}?token=${encodeURIComponent(sesion.token)}" alt="${esc(n)}"><figcaption><b>${esc(n)}</b> · ${esc(f.tipo)}<br>${esc(eqNombre(f.equipo))}</figcaption></figure>`;
+    }).join("") : `<p class="muted">Aún no llegan fotos.</p>`;
   }
 
   // ---------- métricas ----------
@@ -138,8 +276,10 @@
 
   // ---------- exportar ----------
   async function descargar(ruta, nombre) {
-    try { const r = await fetch(ruta, { headers: { Authorization: "Bearer " + sesion.token } }); if (!r.ok) throw new Error("No se pudo exportar (" + r.status + ")");
-      const b = await r.blob(); const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = nombre; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
+    try {
+      const r = await fetch(ruta, { headers: { Authorization: "Bearer " + sesion.token } }); if (!r.ok) throw new Error("No se pudo exportar (" + r.status + ")");
+      const b = await r.blob(); const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = nombre; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    }
     catch (e) { toast(e.message); }
   }
   $("xFichas").addEventListener("click", (e) => { e.preventDefault(); descargar("/api/export/fichas.csv", "fichas_taller.csv"); });
@@ -148,13 +288,16 @@
 
   // ---------- admin ----------
   async function cargarAdmin() {
-    try { const u = await api("/api/admin/usuarios");
+    try {
+      const u = await api("/api/admin/usuarios");
       $("tUsuarios").innerHTML = `<tr><th>Equipo</th><th>Usuario</th><th>Rol</th><th>Código</th></tr>` + u.map((x) => `<tr><td>${esc(x.nombre)}</td><td><b>${esc(x.usuario)}</b></td><td>${esc(config.roles[x.rol] || x.rol)}</td><td><b>${esc(x.codigo)}</b></td></tr>`).join("");
     } catch (e) { $("tUsuarios").innerHTML = `<tr><td>${esc(e.message)}</td></tr>`; }
   }
   $("bReiniciar").addEventListener("click", async () => {
-    try { const r = await api("/api/admin/reiniciar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ confirmar: $("confirma").value.trim() }) });
-      toast("Listo. Respaldo en " + r.respaldo); $("confirma").value = ""; ajustado = false; cargar(); }
+    try {
+      const r = await api("/api/admin/reiniciar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ confirmar: $("confirma").value.trim() }) });
+      toast("Listo. Respaldo en " + r.respaldo); $("confirma").value = ""; ajustado = false; cargar();
+    }
     catch (e) { toast(e.message); }
   });
 
