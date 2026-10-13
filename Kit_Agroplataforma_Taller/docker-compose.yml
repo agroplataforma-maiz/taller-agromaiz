@@ -1,0 +1,21 @@
+# Kit del taller · Agroplataforma
+# Uso:  cp .env.ejemplo .env  (edita los valores)  y luego:  docker compose up -d --build
+services:
+  app:
+    build: .
+    env_file: .env
+    volumes:
+      - ./data:/srv/data
+    restart: unless-stopped
+  caddy:                      # HTTPS automático (necesario para GPS y cámara en los teléfonos)
+    image: caddy:2.8
+    ports: ["8085:80", "443:443"]
+    environment:
+      - DOMINIO=${DOMINIO}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_datos:/data
+    depends_on: [app]
+    restart: unless-stopped
+volumes:
+  caddy_datos:

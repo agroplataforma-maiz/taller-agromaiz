@@ -1,0 +1,9 @@
+# Caddy obtiene y renueva el certificado HTTPS de forma automática.
+# El dominio (por ejemplo taller.agromaiz.mx) debe apuntar a la IP de este servidor.
+{$DOMINIO} {
+	encode gzip
+	request_body {
+		max_size 20MB
+	}
+	reverse_proxy app:8000
+}
