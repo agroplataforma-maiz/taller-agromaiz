@@ -1,79 +1,278 @@
 <!doctype html>
 <html lang="es">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Agroplataforma · Taller</title>
-<link rel="icon" href="/movil/icono.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
-<link rel="stylesheet" href="web.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Agroplataforma · Taller</title>
+  <link rel="icon" href="/movil/icono.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="web.css">
 </head>
+
 <body>
-<header class="cab">
-  <div class="marca">
-    <img src="/movil/icono.svg" alt="" width="36" height="36">
-    <div><div class="eyebrow" id="cOrg">Agroplataforma</div><h1>Plataforma del taller</h1></div>
-  </div>
-  <form id="fLogin" class="login">
-    <input id="wUsuario" placeholder="usuario" autocomplete="username" autocapitalize="none" aria-label="Usuario">
-    <input id="wCodigo" placeholder="código" inputmode="numeric" autocomplete="current-password" aria-label="Código">
-    <button class="pri" type="submit">Entrar</button>
-  </form>
-  <div id="quien" class="quien" hidden><span id="quienTxt"></span><button id="bSalir" type="button">Salir</button></div>
-</header>
-<nav class="tabs" role="tablist">
-  <button role="tab" data-tab="mapa" aria-selected="true">Mapa</button>
-  <button role="tab" data-tab="fichas" aria-selected="false">Fichas</button>
-  <button role="tab" data-tab="evidencias" aria-selected="false">Evidencias</button>
-  <button role="tab" data-tab="metricas" aria-selected="false">Métricas de uso</button>
-  <button role="tab" data-tab="exportar" aria-selected="false">Exportar</button>
-  <button role="tab" data-tab="admin" aria-selected="false" hidden id="tabAdmin">Administración</button>
-</nav>
-<main>
-  <div id="aviso" class="aviso"></div>
-  <section class="kpis" id="kpis"></section>
 
-  <section data-panel="mapa">
-    <div id="mapa" class="mapa" role="img" aria-label="Mapa de áreas y fichas"></div>
-    <p class="muted chico" id="notaMapa"></p>
-  </section>
+  <section id="pantallaLogin" class="pantalla-login">
+    <div class="login-bg-deco" aria-hidden="true"></div>
 
-  <section data-panel="fichas" hidden>
-    <div class="tablawrap"><table id="tFichas"></table></div>
-  </section>
+    <div class="login-card-wrap">
+      <div class="login-logo">
+        <div class="login-logo-ico" aria-hidden="true">🌽</div>
+        <div class="login-eyebrow">AGROPLATAFORMA</div>
+        <h1>Maíz Nativo</h1>
+        <p>Huasteca Potosina · IT Ciudad Valles</p>
+      </div>
 
-  <section data-panel="evidencias" hidden>
-    <div class="galeria" id="galeria"></div>
-  </section>
+      <div class="login-card">
+        <div class="login-panel">
+          <h2>Bienvenido al taller</h2>
+          <p>Ingresa con tu usuario y código de acceso.</p>
 
-  <section data-panel="metricas" hidden>
-    <p class="muted">Tiempos medidos automáticamente por la app (y por el cronometrista). Verde: dentro del tiempo objetivo; ámbar: hasta 50 % más; rojo: más.</p>
-    <div class="tablawrap"><table id="tMetricas"></table></div>
-    <h2>Duración de la misión por equipo</h2>
-    <div id="barras" class="barras"></div>
-    <h2>Problemas reportados</h2>
-    <ul id="incidencias" class="lista"></ul>
-  </section>
+          <form id="fLogin" class="login-form">
+            <label for="wUsuario">Usuario</label>
+            <input id="wUsuario" name="usuario" placeholder="Escribe tu usuario" autocomplete="username"
+              autocapitalize="none" required>
 
-  <section data-panel="exportar" hidden>
-    <div class="tarjetas">
-      <a class="tarjeta" id="xFichas" href="#"><b>Fichas (CSV)</b><span>Una fila por ficha, para Google Colab.</span></a>
-      <a class="tarjeta" id="xMetricas" href="#"><b>Métricas de tiempo (CSV)</b><span>Una fila por tarea medida.</span></a>
-      <a class="tarjeta" id="xGeo" href="#"><b>Áreas y puntos (GeoJSON)</b><span>Para QGIS o para importar a la plataforma.</span></a>
+            <label for="wCodigo">Código de acceso</label>
+            <input id="wCodigo" name="codigo" type="password" placeholder="Escribe tu código"
+              autocomplete="current-password" required>
+
+            <button class="pri login-submit" type="submit">
+              Entrar al taller
+            </button>
+          </form>
+
+
+
+        </div>
+
+        <div class="login-card-footer">
+          PEE-2025-G-369 · IT Ciudad Valles
+        </div>
+      </div>
+
+      <p class="login-footnote">
+        Plataforma de trabajo · Taller de maíz nativo
+      </p>
     </div>
   </section>
 
-  <section data-panel="admin" hidden>
-    <h2>Usuarios y códigos</h2>
-    <p class="muted">Imprime esta lista y recórtala en tarjetas. Cada persona recibe solo la suya.</p>
-    <div class="tablawrap"><table id="tUsuarios"></table></div>
-    <h2>Reiniciar datos</h2>
-    <p class="muted">Guarda un respaldo en el servidor y deja la plataforma en limpio para un nuevo grupo.</p>
-    <div class="fila"><input id="confirma" placeholder="Escribe BORRAR" aria-label="Confirmación"><button id="bReiniciar" class="peligro" type="button">Reiniciar</button></div>
-  </section>
-</main>
-<div id="toast" class="toast" hidden></div>
-<script src="/vendor/leaflet/leaflet.js"></script>
-<script src="web.js"></script>
+  <div id="appTaller" hidden>
+    <aside class="sidebar" id="sidebar">
+      <div class="sb-logo">
+        <img src="/movil/icono.svg" alt="" width="42" height="42">
+        <div class="sb-logo-text">
+          <span>AGROPLATAFORMA</span>
+          <strong>Maíz Nativo</strong>
+          <small>Huasteca Potosina</small>
+        </div>
+      </div>
+
+      <div class="sb-section-label">MENÚ PRINCIPAL</div>
+
+      <nav class="tabs sidebar-nav" role="tablist" aria-label="Navegación principal">
+        <button type="button" role="tab" data-tab="inicio" aria-selected="true">
+          <span class="sb-ico">⌂</span><span class="sb-label">Inicio</span>
+        </button>
+        <button type="button" role="tab" data-tab="mapa" aria-selected="false">
+          <span class="sb-ico">⌖</span><span class="sb-label">Mapa</span>
+        </button>
+        <button type="button" role="tab" data-tab="fichas" aria-selected="false">
+          <span class="sb-ico">▤</span><span class="sb-label">Fichas</span>
+        </button>
+        <button type="button" role="tab" data-tab="evidencias" aria-selected="false">
+          <span class="sb-ico">▧</span><span class="sb-label">Evidencias</span>
+        </button>
+        <button type="button" role="tab" data-tab="metricas" aria-selected="false">
+          <span class="sb-ico">▥</span><span class="sb-label">Métricas de uso</span>
+        </button>
+        <button type="button" role="tab" data-tab="exportar" aria-selected="false">
+          <span class="sb-ico">⇩</span><span class="sb-label">Exportar</span>
+        </button>
+        <button type="button" role="tab" data-tab="admin" aria-selected="false" hidden id="tabAdmin">
+          <span class="sb-ico">⚙</span><span class="sb-label">Administración</span>
+        </button>
+      </nav>
+
+      <div class="sb-spacer"></div>
+
+      <div class="sb-profile">
+        <div class="sb-avatar" id="sbAvatar">A</div>
+        <div class="sb-profile-info">
+          <strong id="sbNombre">Usuario</strong>
+          <span id="sbRol">Participante</span>
+        </div>
+      </div>
+
+      <button class="sb-logout" id="bSalir" type="button">
+        <span class="sb-ico">↪</span>
+        <span class="sb-label">Cerrar sesión</span>
+      </button>
+
+      <div class="sb-footer">IT Ciudad Valles · PEE-2025-G-369</div>
+    </aside>
+
+    <div class="app-main">
+      <header class="cab">
+        <div class="cab-left">
+          <button id="bMenu" class="menu-toggle" type="button" aria-label="Abrir menú" aria-expanded="false">☰</button>
+          <div>
+            <div class="eyebrow" id="cOrg">Agroplataforma</div>
+            <h1 id="tituloSeccion">Inicio</h1>
+          </div>
+        </div>
+        <div id="quien" class="quien" hidden>
+          <span id="quienTxt"></span>
+        </div>
+      </header>
+
+      <main>
+        <section data-panel="inicio" class="inicio-panel">
+          <div class="inicio-hero">
+            <div class="inicio-hero-copy">
+              <div class="inicio-eyebrow">PLATAFORMA DE TRABAJO · TALLER</div>
+              <h2>Bienvenido a la Agroplataforma</h2>
+              <p>
+                Consulta la información recopilada durante el taller de maíz
+                nativo de la Huasteca Potosina.
+              </p>
+              <button type="button" class="pri" data-tab="mapa">
+                Explorar el mapa <span aria-hidden="true">→</span>
+              </button>
+            </div>
+            <div class="inicio-maiz" aria-hidden="true">🌽</div>
+          </div>
+
+          <div class="inicio-heading">
+            <div>
+              <span class="eyebrow">ESPACIO DE TRABAJO</span>
+              <h2>Resumen de actividad</h2>
+              <p class="muted">Información disponible para tu sesión.</p>
+            </div>
+          </div>
+
+          <section class="kpis" id="kpis"></section>
+
+          <div class="inicio-heading">
+            <div>
+              <span class="eyebrow">ACCESO RÁPIDO</span>
+              <h2>Explora los módulos</h2>
+            </div>
+          </div>
+
+          <div class="modulos-grid">
+            <button class="modulo-card" type="button" data-tab="mapa">
+              <span class="modulo-ico">⌖</span>
+              <strong>Mapa</strong>
+              <span>Explora las áreas y su información geográfica.</span>
+              <span class="modulo-link">Abrir módulo →</span>
+            </button>
+            <button class="modulo-card" type="button" data-tab="fichas">
+              <span class="modulo-ico">▤</span>
+              <strong>Fichas</strong>
+              <span>Consulta los registros recopilados.</span>
+              <span class="modulo-link">Abrir módulo →</span>
+            </button>
+            <button class="modulo-card" type="button" data-tab="evidencias">
+              <span class="modulo-ico">▧</span>
+              <strong>Evidencias</strong>
+              <span>Revisa las fotografías disponibles.</span>
+              <span class="modulo-link">Abrir módulo →</span>
+            </button>
+            <button class="modulo-card" type="button" data-tab="metricas">
+              <span class="modulo-ico">▥</span>
+              <strong>Métricas de uso</strong>
+              <span>Consulta los tiempos y las incidencias.</span>
+              <span class="modulo-link">Abrir módulo →</span>
+            </button>
+            <button class="modulo-card" type="button" data-tab="exportar">
+              <span class="modulo-ico">⇩</span>
+              <strong>Exportar información</strong>
+              <span>Accede a los archivos CSV y GeoJSON.</span>
+              <span class="modulo-link">Abrir módulo →</span>
+            </button>
+            <button class="modulo-card" type="button" data-tab="admin" id="inicioAdmin" hidden>
+              <span class="modulo-ico">⚙</span>
+              <strong>Administración</strong>
+              <span>Gestiona los accesos y prepara los datos del taller.</span>
+              <span class="modulo-link">Abrir módulo →</span>
+            </button>
+          </div>
+        </section>
+
+        <div id="aviso" class="aviso"></div>
+
+        <section data-panel="mapa" hidden>
+          <div id="mapa" class="mapa" role="img" aria-label="Mapa de áreas y fichas"></div>
+          <p class="muted chico" id="notaMapa"></p>
+        </section>
+
+        <section data-panel="fichas" hidden>
+          <div class="tablawrap">
+            <table id="tFichas"></table>
+          </div>
+        </section>
+
+        <section data-panel="evidencias" hidden>
+          <div class="galeria" id="galeria"></div>
+        </section>
+
+        <section data-panel="metricas" hidden>
+          <p class="muted">
+            Tiempos medidos automáticamente por la app (y por el cronometrista).
+            Verde: dentro del tiempo objetivo; ámbar: hasta 50 % más; rojo: más.
+          </p>
+          <div class="tablawrap">
+            <table id="tMetricas"></table>
+          </div>
+          <h2>Duración de la misión por equipo</h2>
+          <div id="barras" class="barras"></div>
+          <h2>Problemas reportados</h2>
+          <ul id="incidencias" class="lista"></ul>
+        </section>
+
+        <section data-panel="exportar" hidden>
+          <div class="tarjetas">
+            <a class="tarjeta" id="xFichas" href="#">
+              <b>Fichas (CSV)</b>
+              <span>Una fila por ficha, para Google Colab.</span>
+            </a>
+            <a class="tarjeta" id="xMetricas" href="#">
+              <b>Métricas de tiempo (CSV)</b>
+              <span>Una fila por tarea medida.</span>
+            </a>
+            <a class="tarjeta" id="xGeo" href="#">
+              <b>Áreas y puntos (GeoJSON)</b>
+              <span>Para QGIS o para importar a la plataforma.</span>
+            </a>
+          </div>
+        </section>
+
+        <section data-panel="admin" hidden>
+          <h2>Usuarios y códigos</h2>
+          <p class="muted">
+            Imprime esta lista y recórtala en tarjetas. Cada persona recibe solo la suya.
+          </p>
+          <div class="tablawrap">
+            <table id="tUsuarios"></table>
+          </div>
+          <h2>Reiniciar datos</h2>
+          <p class="muted">
+            Guarda un respaldo en el servidor y deja la plataforma en limpio para un nuevo grupo.
+          </p>
+          <div class="fila">
+            <input id="confirma" placeholder="Escribe BORRAR" aria-label="Confirmación">
+            <button id="bReiniciar" class="peligro" type="button">Reiniciar</button>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+
+  <div id="toast" class="toast" hidden></div>
+  <script src="/vendor/leaflet/leaflet.js"></script>
+  <script src="web.js"></script>
 </body>
+
 </html>
